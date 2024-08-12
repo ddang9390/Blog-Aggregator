@@ -1,17 +1,36 @@
 package main
 
 import (
+	"blog-aggregator/internal/database"
+	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+
+	_ "github.com/lib/pq"
 )
+
+// Using config struct to store shared data that http handlers need access to
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	//Get port from env file
 	godotenv.Load(".env")
 	port := os.Getenv("PORT")
+	dbURL := os.Getenv("DB_URL")
+
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	dbQueries := database.New(db)
+	cfg := &apiConfig{DB: dbQueries}
 
 	router := mux.NewRouter()
 
@@ -19,6 +38,8 @@ func main() {
 	router.HandleFunc("/", handlePage)
 	router.HandleFunc("/v1/healthz", readyHandler()).Methods("GET")
 	router.HandleFunc("/v1/err", errorHandler()).Methods("GET")
+
+	router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
 
 	//Keep server running
 	//http.Handle("/", router)
