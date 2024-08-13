@@ -62,3 +62,22 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 		json.NewEncoder(w).Encode(response)
 	}
 }
+
+func getAllFeeds(cfg *apiConfig) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		feeds, err := cfg.DB.GetAllFeeds(ctx)
+
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Issue getting feeds", http.StatusInternalServerError)
+			return
+		}
+
+		response := map[string]interface{}{
+			"feeds": feeds,
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}
+}

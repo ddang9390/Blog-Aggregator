@@ -40,25 +40,20 @@ func main() {
 	router.HandleFunc("/v1/err", errorHandler()).Methods("GET")
 
 	//User handlers
-	router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			createUser(cfg)
-		default:
-			getUser(cfg, w, r)
-		}
-	})
-
-	//Feed handlers
-	// router.HandleFunc("/v1/feeds", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
+	router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) { getUser(cfg, w, r) }).Methods("GET")
+	// router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) {
 	// 	switch r.Method {
 	// 	case http.MethodPost:
-	// 		createFeed(cfg)
+	// 		createUser(cfg)
 	// 	default:
-	// 		createFeed(cfg)
+	// 		getUser(cfg, w, r)
 	// 	}
 	// })
+
+	//Feed handlers
 	router.HandleFunc("/v1/feeds", createFeed(cfg)).Methods("POST")
+	router.HandleFunc("/v1/feeds", getAllFeeds(cfg)).Methods("GET")
 	//router.Get("/users", cfg.middlewareAuth(cfg.handlerUsersGet))
 
 	//Keep server running
