@@ -39,7 +39,16 @@ func main() {
 	router.HandleFunc("/v1/healthz", readyHandler()).Methods("GET")
 	router.HandleFunc("/v1/err", errorHandler()).Methods("GET")
 
-	router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
+	//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
+	//router.HandleFunc("/v1/users", getUser(cfg)).Methods("GET")
+	router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			createUser(cfg)
+		default:
+			getUser(cfg, w, r)
+		}
+	})
 
 	//Keep server running
 	//http.Handle("/", router)
