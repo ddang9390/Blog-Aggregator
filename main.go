@@ -39,8 +39,7 @@ func main() {
 	router.HandleFunc("/v1/healthz", readyHandler()).Methods("GET")
 	router.HandleFunc("/v1/err", errorHandler()).Methods("GET")
 
-	//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
-	//router.HandleFunc("/v1/users", getUser(cfg)).Methods("GET")
+	//User handlers
 	router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
@@ -49,6 +48,18 @@ func main() {
 			getUser(cfg, w, r)
 		}
 	})
+
+	//Feed handlers
+	// router.HandleFunc("/v1/feeds", func(w http.ResponseWriter, r *http.Request) {
+	// 	switch r.Method {
+	// 	case http.MethodPost:
+	// 		createFeed(cfg)
+	// 	default:
+	// 		createFeed(cfg)
+	// 	}
+	// })
+	router.HandleFunc("/v1/feeds", createFeed(cfg)).Methods("POST")
+	//router.Get("/users", cfg.middlewareAuth(cfg.handlerUsersGet))
 
 	//Keep server running
 	//http.Handle("/", router)

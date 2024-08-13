@@ -9,8 +9,9 @@ import (
 )
 
 type Feed struct {
-	Name sql.NullString
-	Url  sql.NullString
+	Name   sql.NullString
+	Url    sql.NullString
+	UserID string
 }
 
 type User struct {

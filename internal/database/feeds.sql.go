@@ -11,19 +11,20 @@ import (
 )
 
 const createFeed = `-- name: CreateFeed :one
-INSERT INTO feeds (name, url)
-VALUES ($1, $2)
-RETURNING name, url
+INSERT INTO feeds (name, url, user_id)
+VALUES ($1, $2, $3)
+RETURNING name, url, user_id
 `
 
 type CreateFeedParams struct {
-	Name sql.NullString
-	Url  sql.NullString
+	Name   sql.NullString
+	Url    sql.NullString
+	UserID string
 }
 
 func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error) {
-	row := q.db.QueryRowContext(ctx, createFeed, arg.Name, arg.Url)
+	row := q.db.QueryRowContext(ctx, createFeed, arg.Name, arg.Url, arg.UserID)
 	var i Feed
-	err := row.Scan(&i.Name, &i.Url)
+	err := row.Scan(&i.Name, &i.Url, &i.UserID)
 	return i, err
 }
