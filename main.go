@@ -54,7 +54,10 @@ func main() {
 	//Feed handlers
 	router.HandleFunc("/v1/feeds", createFeed(cfg)).Methods("POST")
 	router.HandleFunc("/v1/feeds", getAllFeeds(cfg)).Methods("GET")
-	//router.Get("/users", cfg.middlewareAuth(cfg.handlerUsersGet))
+
+	router.HandleFunc("/v1/feed_follows", createFeedFollow(cfg)).Methods("POST")
+	router.HandleFunc("/v1/feed_follows", deleteFeedFollow(cfg)).Methods("DELETE")
+	router.HandleFunc("/v1/feed_follows", getAllFeedFollowsForUser(cfg)).Methods("GET")
 
 	//Keep server running
 	//http.Handle("/", router)

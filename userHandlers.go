@@ -94,3 +94,18 @@ func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, erro
 	json.NewEncoder(w).Encode(u)
 	return user, nil
 }
+
+func getUserHelper(cfg *apiConfig, w http.ResponseWriter, r *http.Request) *User {
+	apiString := r.Header.Get("ApiKey")
+	if apiString == "" {
+		http.Error(w, "Api key required", http.StatusUnauthorized)
+		return nil
+	}
+	user, err := getUser(cfg, w, r)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Issue getting user", http.StatusInternalServerError)
+		return nil
+	}
+	return &user
+}
