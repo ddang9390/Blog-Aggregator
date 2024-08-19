@@ -1,0 +1,4 @@
+-- +goose Up
+ALTER TABLE feeds
+ADD COLUMN created_at TIMESTAMP NOT NULL,
+ADD COLUMN updated_at TIMESTAMP NOT NULL;

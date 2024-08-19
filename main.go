@@ -19,6 +19,9 @@ type apiConfig struct {
 }
 
 func main() {
+	//testing fetch feed function
+	fetchFeeds("https://blog.boot.dev/index.xml")
+
 	//Get port from env file
 	godotenv.Load(".env")
 	port := os.Getenv("PORT")
@@ -62,6 +65,7 @@ func main() {
 	//Keep server running
 	//http.Handle("/", router)
 	http.ListenAndServe(":"+port, router)
+
 }
 
 // for testing if docker works

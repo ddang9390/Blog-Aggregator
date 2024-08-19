@@ -44,6 +44,7 @@ func createUser(cfg *apiConfig) http.HandlerFunc {
 		sha1_hash := hex.EncodeToString(h.Sum(nil))
 		user.ApiKey = sha1_hash
 
+		fmt.Println(user.ApiKey)
 		// Step 3: Insert into the database
 		ctx := r.Context()
 		_, err := cfg.DB.CreateUser(ctx, database.CreateUserParams{
@@ -51,6 +52,7 @@ func createUser(cfg *apiConfig) http.HandlerFunc {
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 			Name:      user.Name,
+			Apikey:    user.ApiKey,
 		})
 		if err != nil {
 			fmt.Println(err)
@@ -68,14 +70,14 @@ func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, erro
 	var user User
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		http.Error(w, "Authroization header required", http.StatusUnauthorized)
-		return user, fmt.Errorf("uthroization header required")
+		http.Error(w, "Authorization header required", http.StatusUnauthorized)
+		return user, fmt.Errorf("authorization header required")
 	}
 
 	apiString := r.Header.Get("ApiKey")
 	if apiString == "" {
 		http.Error(w, "Api key required", http.StatusUnauthorized)
-		return user, fmt.Errorf("uthroization header required")
+		return user, fmt.Errorf("authorization header required")
 	}
 
 	fmt.Println(apiString)
