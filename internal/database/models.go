@@ -10,8 +10,8 @@ import (
 )
 
 type Feed struct {
-	Name          sql.NullString
-	Url           sql.NullString
+	Name          string
+	Url           string
 	UserID        string
 	LastFetchedAt sql.NullTime
 	CreatedAt     time.Time

@@ -1,0 +1,4 @@
+-- +goose Up
+ALTER TABLE feeds
+ALTER COLUMN name SET NOT NULL,
+ALTER COLUMN url SET NOT NULL;

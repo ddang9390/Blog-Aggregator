@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
+	"sync"
+	"time"
 )
 
 type RSS struct {
@@ -24,23 +28,69 @@ type Item struct {
 	Description string `xml:"description"`
 }
 
-func fetchFeeds(url string) {
+func fetchFeed(url string) (*RSS, error) {
+	status_codes := []int{200, 201, 204}
+
 	response, err := http.Get(url)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
+	}
+	if response.Body == nil {
+		return nil, err
+	}
+	if !slices.Contains(status_codes, response.StatusCode) {
+		return nil, err
 	}
 
 	data, err := io.ReadAll(response.Body)
+	defer response.Body.Close()
+
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
 
 	var rss RSS
 	err = xml.Unmarshal(data, &rss)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
+
+	return &rss, nil
+}
+
+func fetchWorker(cfg *apiConfig, numFeeds int, t time.Duration) error {
+	timer := time.NewTicker(t)
+
+	for _ = range timer.C {
+		ctx := context.Background()
+		feeds, err := cfg.DB.GetNextFeedsToFetch(ctx, int32(numFeeds))
+
+		if err != nil {
+			return err
+		}
+		var wg sync.WaitGroup
+		for _, feed := range feeds {
+			wg.Add(1)
+			url := feed.Url
+
+			go func(url string) {
+				defer wg.Done()
+				rss, err := fetchFeed(url)
+				if err != nil {
+					fmt.Println("Error getting feeds from the url")
+				} else {
+					_, err = cfg.DB.MarkFeedFetched(ctx, url)
+					if err != nil {
+						fmt.Println("Error getting feeds from the url")
+					} else {
+						for _, item := range rss.Channel.Items {
+							fmt.Println(item.Title)
+						}
+					}
+				}
+			}(url)
+		}
+		wg.Wait()
+	}
+	return nil
 }

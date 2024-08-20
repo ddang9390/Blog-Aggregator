@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -19,9 +20,6 @@ type apiConfig struct {
 }
 
 func main() {
-	//testing fetch feed function
-	fetchFeeds("https://blog.boot.dev/index.xml")
-
 	//Get port from env file
 	godotenv.Load(".env")
 	port := os.Getenv("PORT")
@@ -45,14 +43,6 @@ func main() {
 	//User handlers
 	router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
 	router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) { getUser(cfg, w, r) }).Methods("GET")
-	// router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) {
-	// 	switch r.Method {
-	// 	case http.MethodPost:
-	// 		createUser(cfg)
-	// 	default:
-	// 		getUser(cfg, w, r)
-	// 	}
-	// })
 
 	//Feed handlers
 	router.HandleFunc("/v1/feeds", createFeed(cfg)).Methods("POST")
@@ -61,6 +51,11 @@ func main() {
 	router.HandleFunc("/v1/feed_follows", createFeedFollow(cfg)).Methods("POST")
 	router.HandleFunc("/v1/feed_follows", deleteFeedFollow(cfg)).Methods("DELETE")
 	router.HandleFunc("/v1/feed_follows", getAllFeedFollowsForUser(cfg)).Methods("GET")
+
+	//Testing worker
+	limit := 10
+	duration := time.Minute
+	go fetchWorker(cfg, limit, duration)
 
 	//Keep server running
 	//http.Handle("/", router)

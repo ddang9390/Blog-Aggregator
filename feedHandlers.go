@@ -2,7 +2,6 @@ package main
 
 import (
 	"blog-aggregator/internal/database"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -44,8 +43,8 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 
 		ctx := r.Context()
 		_, err2 := cfg.DB.CreateFeed(ctx, database.CreateFeedParams{
-			Name:   sql.NullString{String: f.Name, Valid: true},
-			Url:    sql.NullString{String: f.Url, Valid: true},
+			Name:   f.Name,
+			Url:    f.Url,
 			UserID: user.ID,
 		})
 		if err2 != nil {

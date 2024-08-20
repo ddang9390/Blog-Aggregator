@@ -7,7 +7,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createFeed = `-- name: CreateFeed :one
@@ -17,8 +16,8 @@ RETURNING name, url, user_id, last_fetched_at, created_at, updated_at
 `
 
 type CreateFeedParams struct {
-	Name   sql.NullString
-	Url    sql.NullString
+	Name   string
+	Url    string
 	UserID string
 }
 
@@ -114,7 +113,7 @@ WHERE url = $1
 RETURNING name, url, user_id, last_fetched_at, created_at, updated_at
 `
 
-func (q *Queries) MarkFeedFetched(ctx context.Context, url sql.NullString) (Feed, error) {
+func (q *Queries) MarkFeedFetched(ctx context.Context, url string) (Feed, error) {
 	row := q.db.QueryRowContext(ctx, markFeedFetched, url)
 	var i Feed
 	err := row.Scan(
