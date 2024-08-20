@@ -52,6 +52,8 @@ func main() {
 	router.HandleFunc("/v1/feed_follows", deleteFeedFollow(cfg)).Methods("DELETE")
 	router.HandleFunc("/v1/feed_follows", getAllFeedFollowsForUser(cfg)).Methods("GET")
 
+	router.HandleFunc("/v1/posts", getPostsForUser(cfg)).Methods("GET")
+
 	//Testing worker
 	limit := 10
 	duration := time.Minute

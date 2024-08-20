@@ -12,25 +12,25 @@ import (
 
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts(created_at, updated_at, title, url, description, published_at, feed_id)
-VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULLIF($1,''), $2, NULLIF($3,''), NULLIF($4,''), $5)
+VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $1, $2, $3, $4, $5)
 ON CONFLICT (url) DO NOTHING
 RETURNING id, created_at, updated_at, title, url, description, published_at, feed_id
 `
 
 type CreatePostParams struct {
-	Column1 interface{}
-	Url     sql.NullString
-	Column3 interface{}
-	Column4 interface{}
-	FeedID  string
+	Title       sql.NullString
+	Url         string
+	Description sql.NullString
+	PublishedAt sql.NullTime
+	FeedID      string
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
 	row := q.db.QueryRowContext(ctx, createPost,
-		arg.Column1,
+		arg.Title,
 		arg.Url,
-		arg.Column3,
-		arg.Column4,
+		arg.Description,
+		arg.PublishedAt,
 		arg.FeedID,
 	)
 	var i Post

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"blog-aggregator/internal/database"
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -26,6 +28,7 @@ type Item struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
 	Description string `xml:"description"`
+	PubDate     string `sml:pubDate`
 }
 
 func fetchFeed(url string) (*RSS, error) {
@@ -72,8 +75,9 @@ func fetchWorker(cfg *apiConfig, numFeeds int, t time.Duration) error {
 		for _, feed := range feeds {
 			wg.Add(1)
 			url := feed.Url
+			feedId := feed.ID
 
-			go func(url string) {
+			go func(url string, feedId string) {
 				defer wg.Done()
 				rss, err := fetchFeed(url)
 				if err != nil {
@@ -84,11 +88,23 @@ func fetchWorker(cfg *apiConfig, numFeeds int, t time.Duration) error {
 						fmt.Println("Error getting feeds from the url")
 					} else {
 						for _, item := range rss.Channel.Items {
-							fmt.Println(item.Title)
+							timeLayout := "2006-01-02T15:04:05.999999Z"
+							t2, err := time.Parse(timeLayout, item.PubDate)
+							if err != nil {
+								fmt.Println("Error parsing time")
+							} else {
+								cfg.DB.CreatePost(ctx, database.CreatePostParams{
+									Title:       sql.NullString{String: item.Title, Valid: false},
+									Url:         item.Link,
+									Description: sql.NullString{String: item.Description, Valid: false},
+									PublishedAt: sql.NullTime{Time: t2, Valid: true},
+									FeedID:      feedId,
+								})
+							}
 						}
 					}
 				}
-			}(url)
+			}(url, feedId)
 		}
 		wg.Wait()
 	}

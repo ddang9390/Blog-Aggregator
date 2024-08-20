@@ -14,6 +14,7 @@ import (
 type feed struct {
 	Name string `json:"name"`
 	Url  string `json:"url"`
+	ID   string `json:"id"`
 }
 
 type feed_follow struct {
@@ -32,8 +33,9 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 
 		user := getUserHelper(cfg, w, r)
 
+		feedID := uuid.New().String()
 		response := map[string]interface{}{
-			"id":         user.ApiKey,
+			"id":         feedID,
 			"created_at": time.Now(),
 			"updated_at": time.Now(),
 			"name":       f.Name,
@@ -43,6 +45,7 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 
 		ctx := r.Context()
 		_, err2 := cfg.DB.CreateFeed(ctx, database.CreateFeedParams{
+			ID:     feedID,
 			Name:   f.Name,
 			Url:    f.Url,
 			UserID: user.ID,
@@ -54,7 +57,6 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 		}
 
 		//Create feed follow when creating feed
-		feedID := uuid.New().String()
 		cfg.DB.CreateFeedFollows(ctx, database.CreateFeedFollowsParams{
 			UserID: user.ID,
 			FeedID: feedID,

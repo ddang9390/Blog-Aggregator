@@ -12,6 +12,7 @@ import (
 )
 
 type Feed struct {
+	ID            string
 	Name          string
 	Url           string
 	UserID        string
@@ -30,7 +31,7 @@ type Post struct {
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
 	Title       sql.NullString
-	Url         sql.NullString
+	Url         string
 	Description sql.NullString
 	PublishedAt sql.NullTime
 	FeedID      string

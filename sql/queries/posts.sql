@@ -1,6 +1,6 @@
 -- name: CreatePost :one
 INSERT INTO posts(created_at, updated_at, title, url, description, published_at, feed_id)
-VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULLIF($1,''), $2, NULLIF($3,''), NULLIF($4,''), $5)
+VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $1, $2, $3, $4, $5)
 ON CONFLICT (url) DO NOTHING
 RETURNING *;
 

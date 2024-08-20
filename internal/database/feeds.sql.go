@@ -10,21 +10,28 @@ import (
 )
 
 const createFeed = `-- name: CreateFeed :one
-INSERT INTO feeds (name, url, user_id, created_at, updated_at)
-VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-RETURNING name, url, user_id, last_fetched_at, created_at, updated_at
+INSERT INTO feeds (id, name, url, user_id, created_at, updated_at)
+VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+RETURNING id, name, url, user_id, last_fetched_at, created_at, updated_at
 `
 
 type CreateFeedParams struct {
+	ID     string
 	Name   string
 	Url    string
 	UserID string
 }
 
 func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error) {
-	row := q.db.QueryRowContext(ctx, createFeed, arg.Name, arg.Url, arg.UserID)
+	row := q.db.QueryRowContext(ctx, createFeed,
+		arg.ID,
+		arg.Name,
+		arg.Url,
+		arg.UserID,
+	)
 	var i Feed
 	err := row.Scan(
+		&i.ID,
 		&i.Name,
 		&i.Url,
 		&i.UserID,
@@ -36,7 +43,7 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 }
 
 const getAllFeeds = `-- name: GetAllFeeds :many
-SELECT name, url, user_id, last_fetched_at, created_at, updated_at FROM feeds
+SELECT id, name, url, user_id, last_fetched_at, created_at, updated_at FROM feeds
 `
 
 func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
@@ -49,6 +56,7 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
 	for rows.Next() {
 		var i Feed
 		if err := rows.Scan(
+			&i.ID,
 			&i.Name,
 			&i.Url,
 			&i.UserID,
@@ -70,7 +78,7 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
 }
 
 const getNextFeedsToFetch = `-- name: GetNextFeedsToFetch :many
-SELECT name, url, user_id, last_fetched_at, created_at, updated_at FROM feeds
+SELECT id, name, url, user_id, last_fetched_at, created_at, updated_at FROM feeds
 ORDER BY last_fetched_at NULLS FIRST, name
 LIMIT $1
 `
@@ -85,6 +93,7 @@ func (q *Queries) GetNextFeedsToFetch(ctx context.Context, limit int32) ([]Feed,
 	for rows.Next() {
 		var i Feed
 		if err := rows.Scan(
+			&i.ID,
 			&i.Name,
 			&i.Url,
 			&i.UserID,
@@ -110,13 +119,14 @@ UPDATE feeds
 SET last_fetched_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP
 WHERE url = $1
-RETURNING name, url, user_id, last_fetched_at, created_at, updated_at
+RETURNING id, name, url, user_id, last_fetched_at, created_at, updated_at
 `
 
 func (q *Queries) MarkFeedFetched(ctx context.Context, url string) (Feed, error) {
 	row := q.db.QueryRowContext(ctx, markFeedFetched, url)
 	var i Feed
 	err := row.Scan(
+		&i.ID,
 		&i.Name,
 		&i.Url,
 		&i.UserID,
