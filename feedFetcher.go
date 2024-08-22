@@ -72,6 +72,7 @@ func fetchWorker(cfg *apiConfig, numFeeds int, t time.Duration) error {
 			return err
 		}
 		var wg sync.WaitGroup
+		fmt.Println(feeds)
 		for _, feed := range feeds {
 			wg.Add(1)
 			url := feed.Url
@@ -89,18 +90,25 @@ func fetchWorker(cfg *apiConfig, numFeeds int, t time.Duration) error {
 					} else {
 						for _, item := range rss.Channel.Items {
 							timeLayout := "2006-01-02T15:04:05.999999Z"
-							t2, err := time.Parse(timeLayout, item.PubDate)
-							if err != nil {
-								fmt.Println("Error parsing time")
-							} else {
-								cfg.DB.CreatePost(ctx, database.CreatePostParams{
-									Title:       sql.NullString{String: item.Title, Valid: false},
-									Url:         item.Link,
-									Description: sql.NullString{String: item.Description, Valid: false},
-									PublishedAt: sql.NullTime{Time: t2, Valid: true},
-									FeedID:      feedId,
-								})
+
+							var t2 time.Time
+							if item.PubDate != "" {
+								t2, err = time.Parse(timeLayout, item.PubDate)
+								if err != nil {
+									fmt.Println("Error parsing time")
+								}
 							}
+							_, err = cfg.DB.CreatePost(ctx, database.CreatePostParams{
+								Title:       sql.NullString{String: item.Title, Valid: false},
+								Url:         item.Link,
+								Description: sql.NullString{String: item.Description, Valid: false},
+								PublishedAt: sql.NullTime{Time: t2, Valid: true},
+								FeedID:      feedId,
+							})
+							if err != nil {
+								fmt.Println(err)
+							}
+
 						}
 					}
 				}

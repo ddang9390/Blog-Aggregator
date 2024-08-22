@@ -13,6 +13,7 @@ func getPostsForUser(cfg *apiConfig) http.HandlerFunc {
 			fmt.Println("Error getting user")
 			return
 		}
+		fmt.Println(user.ID)
 
 		ctx := r.Context()
 		posts, err := cfg.DB.GetPostsForUser(ctx, database.GetPostsForUserParams{
