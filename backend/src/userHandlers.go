@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,55 +24,59 @@ type User struct {
 	Password  string       `json:"password"`
 }
 
-func createUser(cfg *apiConfig) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var user User
-		// // Step 1: Parse the request body
-		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-			http.Error(w, "Invalid request payload", http.StatusBadRequest)
-			return
-		}
-
-		// Step 2: Fill additional fields
-		user.ID = uuid.New().String()
-		user.CreatedAt = sql.NullTime{Time: time.Now(), Valid: true}
-		user.UpdatedAt = sql.NullTime{Time: time.Now(), Valid: true}
-
-		// Make API key
-		randInt, _ := rand.Read(make([]byte, 64))
-		h := sha256.New()
-		h.Write([]byte(strconv.Itoa(randInt)))
-		sha1_hash := hex.EncodeToString(h.Sum(nil))
-		user.ApiKey = sha1_hash
-
-		// Encode the password
-		encPW, err1 := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-		if err1 != nil {
-			http.Error(w, "Could not use password", http.StatusInternalServerError)
-			return
-		}
-
-		// Step 3: Insert into the database
-		ctx := r.Context()
-		fmt.Println(string(encPW))
-		_, err := cfg.DB.CreateUser(ctx, database.CreateUserParams{
-			ID:        user.ID,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			Name:      user.Name,
-			Apikey:    user.ApiKey,
-			Password:  string(encPW),
-		})
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Error creating user", http.StatusInternalServerError)
-			return
-		}
-
-		// // Respond with the created user
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(user)
+func createUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+	var user User
+	// // Step 1: Parse the request body
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
 	}
+
+	// Step 2: Fill additional fields
+	user.ID = uuid.New().String()
+	user.CreatedAt = sql.NullTime{Time: time.Now(), Valid: true}
+	user.UpdatedAt = sql.NullTime{Time: time.Now(), Valid: true}
+
+	// Make API key
+	b := make([]byte, 64)
+	_, err1 := rand.Read(b)
+	if err1 != nil {
+		fmt.Println(err1)
+		return
+	}
+	h := sha256.New()
+	h.Write([]byte(b))
+	sha1_hash := hex.EncodeToString(h.Sum(nil))
+	user.ApiKey = sha1_hash
+
+	// Encode the password
+	encPW, err1 := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err1 != nil {
+		http.Error(w, "Could not use password", http.StatusInternalServerError)
+		return
+	}
+
+	// Step 3: Insert into the database
+	ctx := r.Context()
+	fmt.Println(string(encPW))
+	_, err := cfg.DB.CreateUser(ctx, database.CreateUserParams{
+		ID:        user.ID,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Name:      user.Name,
+		Apikey:    user.ApiKey,
+		Password:  string(encPW),
+	})
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error creating user", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the created user
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(user)
+
 }
 
 func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, error) {

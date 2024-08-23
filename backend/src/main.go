@@ -37,6 +37,7 @@ func main() {
 
 	//Handlers
 	//router.HandleFunc("/", handlePage)
+
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "blog-aggregator/frontend/login.html")
 	})
@@ -44,8 +45,17 @@ func main() {
 	router.HandleFunc("/v1/err", errorHandler()).Methods("GET")
 
 	//User handlers
-	router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
-	router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) { getUser(cfg, w, r) }).Methods("GET")
+	//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
+	//router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) { getUser(cfg, w, r) }).Methods("GET")
+
+	router.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			http.ServeFile(w, r, "../../frontend/register.html")
+		} else if r.Method == "POST" {
+			createUser(cfg, w, r)
+			//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
+		}
+	}).Methods("GET", "POST")
 
 	//Feed handlers
 	router.HandleFunc("/v1/feeds", createFeed(cfg)).Methods("POST")
@@ -64,6 +74,7 @@ func main() {
 
 	//Keep server running
 	//http.Handle("/", router)
+
 	http.ListenAndServe(":"+port, router)
 
 }

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blog Aggregator</title>
+</head>
+<body>
+    <div>
+        <h1>Blog Aggregator</h1>
+        <form id="registrationForm" action="/register/" method="POST">
+            <label><b>Username</b></label>
+            <input type="text" placeholder="Enter username" name="name" required>
+            <label><b>Password</b></label>
+            <input type="text" placeholder="Enter password" name="password" required>
+
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            try{
+                e.preventDefault();
+                // Gather form data and send as JSON
+                let userData = {
+                    name: document.querySelector('input[name="name"]').value,
+                    password: document.querySelector('input[name="password"]').value
+                };
+                const response = await fetch("/register", {
+                    body: JSON.stringify(userData),
+                    method : "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                console.log(response)
+                if (response.ok){
+                    console.log("ok")
+                } else{
+                    console.log("something went wrong")
+                }
+
+            } catch (error){
+                console.error("Error: ", error)
+            }
+            
+        });
+    </script>
+</body>
+</html>
