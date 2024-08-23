@@ -1,7 +1,0 @@
--- +goose Up
-ALTER TABLE feeds 
-ALTER COLUMN url TYPE TEXT;
-
--- +goose Down
-ALTER TABLE feeds 
-ALTER COLUMN url TYPE VARCHAR(255);
