@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -37,7 +36,10 @@ func main() {
 	router := mux.NewRouter()
 
 	//Handlers
-	router.HandleFunc("/", handlePage)
+	//router.HandleFunc("/", handlePage)
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "blog-aggregator/frontend/login.html")
+	})
 	router.HandleFunc("/v1/healthz", readyHandler()).Methods("GET")
 	router.HandleFunc("/v1/err", errorHandler()).Methods("GET")
 
@@ -56,9 +58,9 @@ func main() {
 	router.HandleFunc("/v1/posts", getPostsForUser(cfg)).Methods("GET")
 
 	//Testing worker
-	limit := 10
-	duration := time.Minute
-	go fetchWorker(cfg, limit, duration)
+	// limit := 10
+	// duration := time.Minute
+	// go fetchWorker(cfg, limit, duration)
 
 	//Keep server running
 	//http.Handle("/", router)

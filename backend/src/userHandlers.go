@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -21,6 +22,7 @@ type User struct {
 	UpdatedAt sql.NullTime `json:"updated_at"`
 	Name      string       `json:"name"`
 	ApiKey    string       `json:"api_key"`
+	Password  string       `json:"password"`
 }
 
 func createUser(cfg *apiConfig) http.HandlerFunc {
@@ -44,15 +46,23 @@ func createUser(cfg *apiConfig) http.HandlerFunc {
 		sha1_hash := hex.EncodeToString(h.Sum(nil))
 		user.ApiKey = sha1_hash
 
-		fmt.Println(user.ApiKey)
+		// Encode the password
+		encPW, err1 := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err1 != nil {
+			http.Error(w, "Could not use password", http.StatusInternalServerError)
+			return
+		}
+
 		// Step 3: Insert into the database
 		ctx := r.Context()
+		fmt.Println(string(encPW))
 		_, err := cfg.DB.CreateUser(ctx, database.CreateUserParams{
 			ID:        user.ID,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 			Name:      user.Name,
 			Apikey:    user.ApiKey,
+			Password:  string(encPW),
 		})
 		if err != nil {
 			fmt.Println(err)
@@ -68,30 +78,33 @@ func createUser(cfg *apiConfig) http.HandlerFunc {
 
 func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, error) {
 	var user User
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		http.Error(w, "Authorization header required", http.StatusUnauthorized)
-		return user, fmt.Errorf("authorization header required")
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return user, err
 	}
 
-	apiString := r.Header.Get("ApiKey")
-	if apiString == "" {
-		http.Error(w, "Api key required", http.StatusUnauthorized)
-		return user, fmt.Errorf("authorization header required")
-	}
-
-	fmt.Println(apiString)
 	ctx := r.Context()
-	u, err := cfg.DB.GetUser(ctx, apiString)
+	u, err := cfg.DB.GetUser(ctx, user.Name)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Couldn't find user", http.StatusNotFound)
 		return user, err
 	}
+
+	// Decrypt found user's password and compare it
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(user.Password))
+	if err != nil {
+		fmt.Printf("Input PW:%s, Actual PW:%s\n\n", user.Password, u.Password)
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return user, err
+	}
+
 	user.ApiKey = u.Apikey
 	user.ID = u.ID
 	user.CreatedAt = u.CreatedAt
 	user.UpdatedAt = u.UpdatedAt
 	user.Name = u.Name
+	user.Password = u.Password
 
 	json.NewEncoder(w).Encode(u)
 	return user, nil

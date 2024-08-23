@@ -43,4 +43,5 @@ type User struct {
 	UpdatedAt sql.NullTime
 	Name      string
 	Apikey    string
+	Password  string
 }

@@ -30,8 +30,7 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
 			return
 		}
-
-		user := getUserHelper(cfg, w, r)
+		userID := r.Header.Get("userID")
 
 		feedID := uuid.New().String()
 		response := map[string]interface{}{
@@ -40,7 +39,7 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 			"updated_at": time.Now(),
 			"name":       f.Name,
 			"url":        f.Url,
-			"user_id":    user.ID,
+			"user_id":    userID,
 		}
 
 		ctx := r.Context()
@@ -48,7 +47,7 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 			ID:     feedID,
 			Name:   f.Name,
 			Url:    f.Url,
-			UserID: user.ID,
+			UserID: userID,
 		})
 		if err2 != nil {
 			fmt.Println(err2)
@@ -58,7 +57,7 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 
 		//Create feed follow when creating feed
 		cfg.DB.CreateFeedFollows(ctx, database.CreateFeedFollowsParams{
-			UserID: user.ID,
+			UserID: userID,
 			FeedID: feedID,
 		})
 
@@ -96,22 +95,19 @@ func createFeedFollow(cfg *apiConfig) http.HandlerFunc {
 			return
 		}
 
-		user := getUserHelper(cfg, w, r)
-		if user == nil {
-			http.Error(w, "Issue getting user", http.StatusInternalServerError)
-			return
-		}
+		userID := r.Header.Get("userID")
 
+		feedFollowID := uuid.New()
 		response := map[string]interface{}{
-			"id":         user.ApiKey,
+			"id":         feedFollowID,
 			"created_at": time.Now(),
 			"updated_at": time.Now(),
 			"feed_id":    f.Feed_id,
-			"user_id":    user.ID,
+			"user_id":    userID,
 		}
 		ctx := r.Context()
 		cfg.DB.CreateFeedFollows(ctx, database.CreateFeedFollowsParams{
-			UserID: user.ID,
+			UserID: userID,
 			FeedID: f.Feed_id,
 		})
 
@@ -143,20 +139,15 @@ func getAllFeedFollowsForUser(cfg *apiConfig) http.HandlerFunc {
 			http.Error(w, "Authroization header required", http.StatusUnauthorized)
 			return
 		}
-		user := getUserHelper(cfg, w, r)
-		if user == nil {
-			http.Error(w, "Issue getting user", http.StatusInternalServerError)
-			return
-		}
+		userID := r.Header.Get("userID")
 
 		ctx := r.Context()
-		feeds, err := cfg.DB.GetAllFeedFollowsForUser(ctx, user.ID)
+		feeds, err := cfg.DB.GetAllFeedFollowsForUser(ctx, userID)
 		if err != nil {
 			http.Error(w, "Issue getting feed follows", http.StatusInternalServerError)
 			return
 		}
 
-		fmt.Println(feeds)
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(feeds)
 	}
