@@ -93,6 +93,8 @@ func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, erro
 		http.Error(w, "Couldn't find user", http.StatusNotFound)
 		return user, err
 	}
+	fmt.Println(user)
+	fmt.Println(u)
 
 	// Decrypt found user's password and compare it
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(user.Password))

@@ -48,11 +48,22 @@ func main() {
 	//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
 	//router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) { getUser(cfg, w, r) }).Methods("GET")
 
+	// For registering a user
 	router.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			http.ServeFile(w, r, "../../frontend/register.html")
 		} else if r.Method == "POST" {
 			createUser(cfg, w, r)
+			//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
+		}
+	}).Methods("GET", "POST")
+
+	// For logging in a user
+	router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			http.ServeFile(w, r, "../../frontend/login.html")
+		} else if r.Method == "POST" {
+			getUser(cfg, w, r)
 			//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
 		}
 	}).Methods("GET", "POST")

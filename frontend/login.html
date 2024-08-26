@@ -7,14 +7,49 @@
 <body>
     <div>
         <h1>Blog Aggregator</h1>
-        <div>
+        <form id="loginForm" action="/login/" method="POST">
+
             <labal><b>Username</b></labal>
-            <input type="text" placeholder="Enter username" required>
-            <input type="text" placeholder="Enter password" required>
+            <input type="text" placeholder="Enter username" name="name" required>
+            <input type="password" placeholder="Enter password" name="password" required>
 
             <button type="submit">Login</button>
-            <button type="Register">Register</button>
-        </div>
+            <button type="Register" onclick="goToRegister()">Register</button>
+        </form>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            try{
+                e.preventDefault();
+                // Gather form data and send as JSON
+                let userData = {
+                    name: document.querySelector('input[name="name"]').value,
+                    password: document.querySelector('input[name="password"]').value
+                };
+                const response = await fetch("/login", {
+                    body: JSON.stringify(userData),
+                    method : "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                console.log(response)
+                if (response.ok){
+                    console.log("ok")
+                } else{
+                    console.log("something went wrong")
+                }
+
+            } catch (error){
+                console.error("Error: ", error)
+            }
+            
+        });
+
+        function goToRegister(){
+            window.location.href = "register"
+        }
+    </script>
 </body>
 </html>
