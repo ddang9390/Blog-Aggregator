@@ -45,9 +45,6 @@ func main() {
 	router.HandleFunc("/v1/err", errorHandler()).Methods("GET")
 
 	//User handlers
-	//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
-	//router.HandleFunc("/v1/users", func(w http.ResponseWriter, r *http.Request) { getUser(cfg, w, r) }).Methods("GET")
-
 	// For registering a user
 	router.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
@@ -84,8 +81,7 @@ func main() {
 	// go fetchWorker(cfg, limit, duration)
 
 	//Keep server running
-	//http.Handle("/", router)
-
+	router.PathPrefix("/frontend/").Handler(http.StripPrefix("/frontend/", http.FileServer(http.Dir("../../frontend"))))
 	http.ListenAndServe(":"+port, router)
 
 }

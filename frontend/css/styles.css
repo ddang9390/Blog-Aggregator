@@ -1,0 +1,8 @@
+body{
+    background-color: lightgray;
+}
+
+.login-container{
+    background-color: white;
+    max-width: 500px;
+}
