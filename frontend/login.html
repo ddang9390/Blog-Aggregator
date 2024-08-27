@@ -21,6 +21,9 @@
                 <label><b>Password</b></label>
                 <input type="password" placeholder="Enter password" name="password" required>
             </div>
+            <div class="row p-2 m-2 alert alert-danger" role="alert" style="display:none">
+                Invalid username or password
+            </div>
             <div class="row p-2 m-2">
                 <button type="submit" class="p-2 btn btn-primary">Login</button>
                 <button type="Register" onclick="goToRegister()" class=" p-2 mt-2 btn btn-secondary">Register</button>
@@ -48,6 +51,8 @@
                 if (response.ok){
                     console.log("ok")
                 } else{
+                    let alert = document.querySelector(".alert")
+                    alert.style.display = "block"
                     console.log("something went wrong")
                 }
 
