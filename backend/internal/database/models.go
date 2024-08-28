@@ -37,6 +37,13 @@ type Post struct {
 	FeedID      string
 }
 
+type Session struct {
+	SessionID string
+	UserID    string
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
 type User struct {
 	ID        string
 	CreatedAt sql.NullTime
