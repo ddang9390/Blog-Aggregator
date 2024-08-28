@@ -4,10 +4,16 @@ import (
 	"net/http"
 )
 
-func setCookieHandler(w http.ResponseWriter, r *http.Request) {
+func setCookieHandler(w http.ResponseWriter, r *http.Request, cfg *apiConfig, userID string) {
+	session, err := createSession(cfg, userID, r)
+	if err != nil {
+		http.Error(w, "Error creating session", http.StatusBadRequest)
+		return
+	}
+
 	cookie := http.Cookie{
 		Name:     "blog-aggregator",
-		Value:    "hello world",
+		Value:    session.sessionID,
 		Path:     "/",
 		MaxAge:   3600,
 		HttpOnly: true,
@@ -16,15 +22,14 @@ func setCookieHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &cookie)
-	w.Write([]byte("hello world"))
 }
 
-func getCookieHandler(w http.ResponseWriter, r *http.Request) {
+func getCookieHandler(w http.ResponseWriter, r *http.Request) string {
 	cookie, err := r.Cookie("blog-aggregator")
 	if err != nil {
 		http.Error(w, "Error getting cookie", http.StatusBadRequest)
-		return
+		return ""
 	}
 
-	w.Write([]byte(cookie.Value))
+	return cookie.Value
 }

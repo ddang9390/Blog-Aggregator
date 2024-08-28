@@ -89,17 +89,13 @@ func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, erro
 	ctx := r.Context()
 	u, err := cfg.DB.GetUser(ctx, user.Name)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Couldn't find user", http.StatusNotFound)
 		return user, err
 	}
-	fmt.Println(user)
-	fmt.Println(u)
 
 	// Decrypt found user's password and compare it
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(user.Password))
 	if err != nil {
-		fmt.Printf("Input PW:%s, Actual PW:%s\n\n", user.Password, u.Password)
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return user, err
 	}
@@ -121,6 +117,7 @@ func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, erro
 		"token": token,
 	}
 
+	setCookieHandler(w, r, cfg, user.ID)
 	json.NewEncoder(w).Encode(response)
 	return user, nil
 }
