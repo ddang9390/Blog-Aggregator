@@ -8,16 +8,15 @@ import (
 
 func getPostsForUser(cfg *apiConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user := getUserHelper(cfg, w, r)
-		if user == nil {
-			fmt.Println("Error getting user")
+		userID, err := jwtValidate(r, cfg.jwtSecret)
+		if err != nil {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
-		fmt.Println(user.ID)
 
 		ctx := r.Context()
 		posts, err := cfg.DB.GetPostsForUser(ctx, database.GetPostsForUserParams{
-			UserID: user.ID,
+			UserID: userID,
 			Limit:  10,
 		})
 

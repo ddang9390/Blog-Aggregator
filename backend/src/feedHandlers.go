@@ -30,17 +30,14 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
 			return
 		}
-		userID := r.Header.Get("userID")
+		// JWT validation for user authentication
+		userID, err := jwtValidate(r, cfg.jwtSecret)
+		if err != nil {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
 
 		feedID := uuid.New().String()
-		response := map[string]interface{}{
-			"id":         feedID,
-			"created_at": time.Now(),
-			"updated_at": time.Now(),
-			"name":       f.Name,
-			"url":        f.Url,
-			"user_id":    userID,
-		}
 
 		ctx := r.Context()
 		_, err2 := cfg.DB.CreateFeed(ctx, database.CreateFeedParams{
@@ -51,7 +48,7 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 		})
 		if err2 != nil {
 			fmt.Println(err2)
-			http.Error(w, "Issue creating feed", http.StatusUnauthorized)
+			http.Error(w, "Issue creating feed", http.StatusBadRequest)
 			return
 		}
 
@@ -60,6 +57,15 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 			UserID: userID,
 			FeedID: feedID,
 		})
+
+		response := map[string]interface{}{
+			"id":         feedID,
+			"created_at": time.Now(),
+			"updated_at": time.Now(),
+			"name":       f.Name,
+			"url":        f.Url,
+			"user_id":    userID,
+		}
 
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(response)
@@ -95,7 +101,12 @@ func createFeedFollow(cfg *apiConfig) http.HandlerFunc {
 			return
 		}
 
-		userID := r.Header.Get("userID")
+		// JWT validation for user authentication
+		userID, err := jwtValidate(r, cfg.jwtSecret)
+		if err != nil {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
 
 		feedFollowID := uuid.New()
 		response := map[string]interface{}{

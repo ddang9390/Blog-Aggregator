@@ -103,6 +103,10 @@ func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, erro
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return user, err
 	}
+	token, err := jwtCreation(user, cfg.jwtSecret)
+	if err != nil {
+		return user, err
+	}
 
 	user.ApiKey = u.Apikey
 	user.ID = u.ID
@@ -111,7 +115,13 @@ func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, erro
 	user.Name = u.Name
 	user.Password = u.Password
 
-	json.NewEncoder(w).Encode(u)
+	response := map[string]interface{}{
+		"id":    user.ID,
+		"name":  user.Name,
+		"token": token,
+	}
+
+	json.NewEncoder(w).Encode(response)
 	return user, nil
 }
 
