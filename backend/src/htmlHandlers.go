@@ -1,17 +1,23 @@
 package main
 
 import (
+	"blog-aggregator/backend/internal/database"
 	"html/template"
 	"net/http"
 )
 
-func outputHTML(w http.ResponseWriter, file string, user User) {
+type pageData struct {
+	User  User
+	Feeds []database.Feed
+}
+
+func outputHTML(w http.ResponseWriter, file string, data pageData) {
 	template, err := template.ParseFiles(file)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err = template.Execute(w, user)
+
+	err = template.Execute(w, data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}

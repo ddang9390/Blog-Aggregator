@@ -89,13 +89,18 @@ func getAllFeeds(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := map[string]interface{}{
-		"feeds": feeds,
-	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	// response := map[string]interface{}{
+	// 	"feeds": feeds,
+	// }
 
-	outputHTML(w, "../../frontend/feeds.html", user)
+	fmt.Println(feeds)
+	//json.NewEncoder(w).Encode(response)
+	data := pageData{
+		User:  user,
+		Feeds: feeds,
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	outputHTML(w, "../../frontend/feeds.html", data)
 
 }
 
@@ -168,5 +173,9 @@ func getAllFeedFollowsForUser(cfg *apiConfig, w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(feeds)
 
-	outputHTML(w, "../../frontend/feeds.html", user)
+	data := pageData{
+		User: user,
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	outputHTML(w, "../../frontend/feeds.html", data)
 }
