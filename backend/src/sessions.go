@@ -3,7 +3,9 @@ package main
 import (
 	"blog-aggregator/backend/internal/database"
 	"crypto/rand"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -26,7 +28,7 @@ func createSession(cfg *apiConfig, userID string, r *http.Request) (*Session, er
 	}
 
 	session := Session{
-		sessionID: string(sessionID),
+		sessionID: base64.URLEncoding.EncodeToString(sessionID),
 		userId:    userID,
 		createdAt: time.Now().UTC(),
 		expiresAt: time.Now().UTC().Add(time.Hour),
@@ -42,6 +44,7 @@ func createSession(cfg *apiConfig, userID string, r *http.Request) (*Session, er
 	ctx := r.Context()
 	_, err = cfg.DB.CreateSession(ctx, sessionParams)
 	if err != nil {
+		fmt.Println(err)
 		//reattempt to create session in case of duplicate session id
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -51,7 +54,7 @@ func createSession(cfg *apiConfig, userID string, r *http.Request) (*Session, er
 				if err != nil {
 					return nil, err
 				}
-				sessionParams.SessionID = string(sessionID)
+				sessionParams.SessionID = base64.URLEncoding.EncodeToString(sessionID)
 				_, err = cfg.DB.CreateSession(ctx, sessionParams)
 				if err == nil {
 					break

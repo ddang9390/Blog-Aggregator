@@ -22,6 +22,7 @@ func jwtCreation(user User, secret string) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Hour)),
 		},
 	}
+	fmt.Println(user)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(secret))

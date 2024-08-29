@@ -17,6 +17,7 @@ import (
 type apiConfig struct {
 	DB        *database.Queries
 	jwtSecret string
+	jwtToken  string
 }
 
 func main() {
@@ -62,18 +63,28 @@ func main() {
 		if r.Method == "GET" {
 			http.ServeFile(w, r, "../../frontend/login.html")
 		} else if r.Method == "POST" {
-			getUser(cfg, w, r)
-			//router.HandleFunc("/v1/users", createUser(cfg)).Methods("POST")
+			loginUser(cfg, w, r)
 		}
 	}).Methods("GET", "POST")
 
 	//Feed handlers
-	router.HandleFunc("/v1/feeds", createFeed(cfg)).Methods("POST")
-	router.HandleFunc("/v1/feeds", getAllFeeds(cfg)).Methods("GET")
+	router.HandleFunc("/feeds", func(w http.ResponseWriter, r *http.Request) {
+		r.Header.Add("Authorization", cfg.jwtToken)
+		if r.Method == "GET" {
+			getAllFeeds(cfg, w, r)
+			//http.ServeFile(w, r, "../../frontend/feeds.html")
+
+		} else if r.Method == "POST" {
+			createFeed(cfg)
+		}
+	}).Methods("GET", "POST")
+
+	//router.HandleFunc("/v1/feeds", createFeed(cfg)).Methods("POST")
+	//router.HandleFunc("/v1/feeds", getAllFeeds(cfg)).Methods("GET")
 
 	router.HandleFunc("/v1/feed_follows", createFeedFollow(cfg)).Methods("POST")
 	router.HandleFunc("/v1/feed_follows", deleteFeedFollow(cfg)).Methods("DELETE")
-	router.HandleFunc("/v1/feed_follows", getAllFeedFollowsForUser(cfg)).Methods("GET")
+	//router.HandleFunc("/v1/feed_follows", getAllFeedFollowsForUser(cfg)).Methods("GET")
 
 	router.HandleFunc("/v1/posts", getPostsForUser(cfg)).Methods("GET")
 

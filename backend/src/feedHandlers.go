@@ -72,23 +72,31 @@ func createFeed(cfg *apiConfig) http.HandlerFunc {
 	}
 }
 
-func getAllFeeds(cfg *apiConfig) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		feeds, err := cfg.DB.GetAllFeeds(ctx)
-
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Issue getting feeds", http.StatusInternalServerError)
-			return
-		}
-
-		response := map[string]interface{}{
-			"feeds": feeds,
-		}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+func getAllFeeds(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+	// JWT validation for user authentication
+	userID, err := jwtValidate(r, cfg.jwtSecret)
+	if err != nil {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
 	}
+	user := getUserHelper(cfg, w, r, userID)
+
+	ctx := r.Context()
+	feeds, err := cfg.DB.GetAllFeeds(ctx)
+
+	if err != nil {
+		http.Error(w, "Issue getting feeds", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"feeds": feeds,
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+
+	outputHTML(w, "../../frontend/feeds.html", user)
+
 }
 
 func createFeedFollow(cfg *apiConfig) http.HandlerFunc {
@@ -129,8 +137,6 @@ func createFeedFollow(cfg *apiConfig) http.HandlerFunc {
 
 func deleteFeedFollow(cfg *apiConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.URL)
-
 		parsedURL, err := url.Parse(r.URL.String())
 		if err != nil {
 			http.Error(w, "Issue parsing url", http.StatusInternalServerError)
@@ -143,23 +149,24 @@ func deleteFeedFollow(cfg *apiConfig) http.HandlerFunc {
 	}
 }
 
-func getAllFeedFollowsForUser(cfg *apiConfig) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			http.Error(w, "Authroization header required", http.StatusUnauthorized)
-			return
-		}
-		userID := r.Header.Get("userID")
-
-		ctx := r.Context()
-		feeds, err := cfg.DB.GetAllFeedFollowsForUser(ctx, userID)
-		if err != nil {
-			http.Error(w, "Issue getting feed follows", http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(feeds)
+func getAllFeedFollowsForUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+	// JWT validation for user authentication
+	userID, err := jwtValidate(r, cfg.jwtSecret)
+	if err != nil {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
 	}
+
+	ctx := r.Context()
+	feeds, err := cfg.DB.GetAllFeedFollowsForUser(ctx, userID)
+	if err != nil {
+		http.Error(w, "Issue getting feed follows", http.StatusInternalServerError)
+		return
+	}
+	user := getUserHelper(cfg, w, r, userID)
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(feeds)
+
+	outputHTML(w, "../../frontend/feeds.html", user)
 }

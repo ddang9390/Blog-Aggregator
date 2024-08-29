@@ -58,7 +58,6 @@ func createUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 
 	// Step 3: Insert into the database
 	ctx := r.Context()
-	fmt.Println(string(encPW))
 	_, err := cfg.DB.CreateUser(ctx, database.CreateUserParams{
 		ID:        user.ID,
 		CreatedAt: user.CreatedAt,
@@ -68,7 +67,6 @@ func createUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		Password:  string(encPW),
 	})
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
@@ -79,29 +77,25 @@ func createUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, error) {
+func loginUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) error {
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
-		return user, err
+		return err
 	}
 
 	ctx := r.Context()
 	u, err := cfg.DB.GetUser(ctx, user.Name)
 	if err != nil {
 		http.Error(w, "Couldn't find user", http.StatusNotFound)
-		return user, err
+		return err
 	}
 
 	// Decrypt found user's password and compare it
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(user.Password))
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-		return user, err
-	}
-	token, err := jwtCreation(user, cfg.jwtSecret)
-	if err != nil {
-		return user, err
+		return err
 	}
 
 	user.ApiKey = u.Apikey
@@ -111,28 +105,42 @@ func getUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) (User, erro
 	user.Name = u.Name
 	user.Password = u.Password
 
+	token, err := jwtCreation(user, cfg.jwtSecret)
+	if err != nil {
+		return err
+	}
+
 	response := map[string]interface{}{
 		"id":    user.ID,
 		"name":  user.Name,
 		"token": token,
 	}
 
+	cfg.jwtToken = token
 	setCookieHandler(w, r, cfg, user.ID)
 	json.NewEncoder(w).Encode(response)
-	return user, nil
+	return nil
 }
 
-func getUserHelper(cfg *apiConfig, w http.ResponseWriter, r *http.Request) *User {
-	apiString := r.Header.Get("ApiKey")
-	if apiString == "" {
-		http.Error(w, "Api key required", http.StatusUnauthorized)
-		return nil
+func getUserHelper(cfg *apiConfig, w http.ResponseWriter, r *http.Request, userID string) User {
+	var user User
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return user
 	}
-	user, err := getUser(cfg, w, r)
+	ctx := r.Context()
+	u, err := cfg.DB.GetUserByID(ctx, userID)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(w, "Issue getting user", http.StatusInternalServerError)
-		return nil
+		return user
 	}
-	return &user
+	user.ApiKey = u.Apikey
+	user.ID = u.ID
+	user.CreatedAt = u.CreatedAt
+	user.UpdatedAt = u.UpdatedAt
+	user.Name = u.Name
+	user.Password = u.Password
+
+	return user
 }
