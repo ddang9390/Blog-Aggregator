@@ -10,8 +10,10 @@ type pageData struct {
 	Feeds []feed
 }
 
+var navbar = "../../frontend/navbar.html"
+
 func outputHTML(w http.ResponseWriter, file string, data pageData) {
-	template, err := template.ParseFiles(file)
+	template, err := template.ParseFiles(file, navbar)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}

@@ -99,7 +99,6 @@ func getAllFeeds(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	// 	"feeds": feeds,
 	// }
 
-	fmt.Println(feeds)
 	//json.NewEncoder(w).Encode(response)
 	data := pageData{
 		User:  user,

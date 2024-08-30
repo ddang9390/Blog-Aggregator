@@ -8,6 +8,7 @@
     <link href="/frontend/css/feeds.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+    {{template "navbar" .}}
     <div class="container">
         <h1>Welcome {{.User.Name}}</h1>
         <div class="input-group mb-3">
@@ -25,7 +26,9 @@
                 <div class="card mb-4">
                     <h1>{{.Name}}</h1>
                     <p>{{.Url}}</p>
-
+                    <div class="btn-group">
+                        <button></button>
+                    </div>
                 </div>
             </div>
             {{end}}
