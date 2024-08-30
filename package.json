@@ -1,0 +1,14 @@
+{
+  "name": "blog-aggregator",
+  "version": "1.0.0",
+  "description": "Users can login and add RSS feeds which the aggregator would use to collect the posts from the feeds and display them",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.46.1",
+    "@types/node": "^22.5.1"
+  }
+}

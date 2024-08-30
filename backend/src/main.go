@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -89,9 +90,9 @@ func main() {
 	router.HandleFunc("/v1/posts", getPostsForUser(cfg)).Methods("GET")
 
 	//Testing worker
-	// limit := 10
-	// duration := time.Minute
-	// go fetchWorker(cfg, limit, duration)
+	limit := 10
+	duration := time.Minute
+	go fetchWorker(cfg, limit, duration)
 
 	//Keep server running
 	router.PathPrefix("/frontend/").Handler(http.StripPrefix("/frontend/", http.FileServer(http.Dir("../../frontend"))))

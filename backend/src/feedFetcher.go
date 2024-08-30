@@ -84,6 +84,7 @@ func fetchWorker(cfg *apiConfig, numFeeds int, t time.Duration) error {
 				if err != nil {
 					fmt.Println("Error getting feeds from the url")
 				} else {
+					fmt.Printf("Url: %s\n", url)
 					_, err = cfg.DB.MarkFeedFetched(ctx, url)
 					if err != nil {
 						fmt.Println("Error getting feeds from the url")
@@ -95,6 +96,7 @@ func fetchWorker(cfg *apiConfig, numFeeds int, t time.Duration) error {
 							if item.PubDate != "" {
 								t2, err = time.Parse(timeLayout, item.PubDate)
 								if err != nil {
+									fmt.Println(item.PubDate)
 									fmt.Println("Error parsing time")
 								}
 							}
