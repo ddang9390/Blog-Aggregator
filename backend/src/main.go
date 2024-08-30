@@ -75,7 +75,7 @@ func main() {
 			//http.ServeFile(w, r, "../../frontend/feeds.html")
 
 		} else if r.Method == "POST" {
-			createFeed(cfg)
+			createFeed(cfg, w, r)
 		}
 	}).Methods("GET", "POST")
 

@@ -21,55 +21,54 @@ type feed_follow struct {
 	Feed_id string `json:"feed_id"`
 }
 
-func createFeed(cfg *apiConfig) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var f feed
+func createFeed(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+	var f feed
 
-		if err := json.NewDecoder(r.Body).Decode(&f); err != nil {
-			fmt.Println(err)
-			http.Error(w, "Invalid request payload", http.StatusBadRequest)
-			return
-		}
-		// JWT validation for user authentication
-		userID, err := jwtValidate(r, cfg.jwtSecret)
-		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
-			return
-		}
-
-		feedID := uuid.New().String()
-
-		ctx := r.Context()
-		_, err2 := cfg.DB.CreateFeed(ctx, database.CreateFeedParams{
-			ID:     feedID,
-			Name:   f.Name,
-			Url:    f.Url,
-			UserID: userID,
-		})
-		if err2 != nil {
-			fmt.Println(err2)
-			http.Error(w, "Issue creating feed", http.StatusBadRequest)
-			return
-		}
-
-		//Create feed follow when creating feed
-		cfg.DB.CreateFeedFollows(ctx, database.CreateFeedFollowsParams{
-			UserID: userID,
-			FeedID: feedID,
-		})
-
-		response := map[string]interface{}{
-			"id":         feedID,
-			"created_at": time.Now(),
-			"updated_at": time.Now(),
-			"name":       f.Name,
-			"url":        f.Url,
-			"user_id":    userID,
-		}
-
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+	if err := json.NewDecoder(r.Body).Decode(&f); err != nil {
+		fmt.Println(err)
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
 	}
+	// JWT validation for user authentication
+	userID, err := jwtValidate(r, cfg.jwtSecret)
+	if err != nil {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	feedID := uuid.New().String()
+
+	ctx := r.Context()
+	_, err2 := cfg.DB.CreateFeed(ctx, database.CreateFeedParams{
+		ID:     feedID,
+		Name:   f.Name,
+		Url:    f.Url,
+		UserID: userID,
+	})
+	if err2 != nil {
+		fmt.Println(err2)
+		http.Error(w, "Issue creating feed", http.StatusBadRequest)
+		return
+	}
+
+	//Create feed follow when creating feed
+	cfg.DB.CreateFeedFollows(ctx, database.CreateFeedFollowsParams{
+		UserID: userID,
+		FeedID: feedID,
+	})
+
+	response := map[string]interface{}{
+		"id":         feedID,
+		"created_at": time.Now(),
+		"updated_at": time.Now(),
+		"name":       f.Name,
+		"url":        f.Url,
+		"user_id":    userID,
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(response)
+
 }
 
 func getAllFeeds(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
@@ -82,8 +81,15 @@ func getAllFeeds(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	user := getUserHelper(cfg, w, r, userID)
 
 	ctx := r.Context()
-	feeds, err := cfg.DB.GetAllFeeds(ctx)
-
+	databaseFeeds, err := cfg.DB.GetAllFeeds(ctx)
+	feeds := make([]feed, len(databaseFeeds))
+	for i, dbFeed := range databaseFeeds {
+		feeds[i] = feed{
+			Name: dbFeed.Name,
+			Url:  dbFeed.Url,
+			ID:   dbFeed.ID,
+		}
+	}
 	if err != nil {
 		http.Error(w, "Issue getting feeds", http.StatusInternalServerError)
 		return

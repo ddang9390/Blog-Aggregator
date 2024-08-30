@@ -1,14 +1,13 @@
 package main
 
 import (
-	"blog-aggregator/backend/internal/database"
 	"html/template"
 	"net/http"
 )
 
 type pageData struct {
 	User  User
-	Feeds []database.Feed
+	Feeds []feed
 }
 
 func outputHTML(w http.ResponseWriter, file string, data pageData) {
