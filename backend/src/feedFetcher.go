@@ -101,9 +101,9 @@ func fetchWorker(cfg *apiConfig, numFeeds int, t time.Duration) error {
 								}
 							}
 							_, err = cfg.DB.CreatePost(ctx, database.CreatePostParams{
-								Title:       sql.NullString{String: item.Title, Valid: false},
+								Title:       sql.NullString{String: item.Title, Valid: true},
 								Url:         item.Link,
-								Description: sql.NullString{String: item.Description, Valid: false},
+								Description: sql.NullString{String: item.Description, Valid: true},
 								PublishedAt: sql.NullTime{Time: t2, Valid: true},
 								FeedID:      feedId,
 							})
