@@ -17,3 +17,7 @@ SET last_fetched_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP
 WHERE url = $1
 RETURNING *;
+
+-- name: GetFeedByID :one
+SELECT * FROM feeds 
+WHERE id=$1;

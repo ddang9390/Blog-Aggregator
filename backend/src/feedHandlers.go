@@ -19,6 +19,7 @@ type feed struct {
 
 type feed_follow struct {
 	Feed_id string `json:"feed_id"`
+	User_id string `json:"user_id"`
 }
 
 func createFeed(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
@@ -168,19 +169,41 @@ func getAllFeedFollowsForUser(cfg *apiConfig, w http.ResponseWriter, r *http.Req
 	}
 
 	ctx := r.Context()
-	feeds, err := cfg.DB.GetAllFeedFollowsForUser(ctx, userID)
+	db_feed_follows, err := cfg.DB.GetAllFeedFollowsForUser(ctx, userID)
 	if err != nil {
 		http.Error(w, "Issue getting feed follows", http.StatusInternalServerError)
 		return
 	}
 	user := getUserHelper(cfg, w, r, userID)
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(feeds)
+	//w.WriteHeader(http.StatusCreated)
+	//json.NewEncoder(w).Encode(feed_follows)
 
+	feed_follows := make([]feed_follow, len(db_feed_follows))
+	feeds := make([]feed, len(db_feed_follows))
+
+	for i, dbFeed := range db_feed_follows {
+		feed_follows[i] = feed_follow{
+			Feed_id: dbFeed.FeedID,
+			User_id: dbFeed.UserID,
+		}
+		f, err := cfg.DB.GetFeedByID(ctx, dbFeed.FeedID)
+		if err != nil {
+			http.Error(w, "Issue getting feeds", http.StatusInternalServerError)
+			return
+		}
+		feeds[i] = feed{
+			ID:   f.ID,
+			Name: f.Name,
+			Url:  f.Url,
+		}
+
+	}
 	data := pageData{
-		User: user,
+		User:         user,
+		Feeds:        feeds,
+		Feed_follows: feed_follows,
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	outputHTML(w, "../../frontend/feeds.html", data)
+	outputHTML(w, "../../frontend/feed_follows.html", data)
 }

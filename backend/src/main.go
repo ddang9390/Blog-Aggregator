@@ -83,6 +83,16 @@ func main() {
 	//router.HandleFunc("/v1/feeds", createFeed(cfg)).Methods("POST")
 	//router.HandleFunc("/v1/feeds", getAllFeeds(cfg)).Methods("GET")
 
+	//Feed Follow Handlers
+	router.HandleFunc("/feed_follows", func(w http.ResponseWriter, r *http.Request) {
+		r.Header.Add("Authorization", cfg.jwtToken)
+		if r.Method == "GET" {
+			getAllFeedFollowsForUser(cfg, w, r)
+			//http.ServeFile(w, r, "../../frontend/feeds.html")
+
+		}
+	}).Methods("GET")
+
 	router.HandleFunc("/v1/feed_follows", createFeedFollow(cfg)).Methods("POST")
 	router.HandleFunc("/v1/feed_follows", deleteFeedFollow(cfg)).Methods("DELETE")
 	//router.HandleFunc("/v1/feed_follows", getAllFeedFollowsForUser(cfg)).Methods("GET")
