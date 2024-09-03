@@ -11,3 +11,7 @@ JOIN feed_follows ff ON p.feed_id = ff.feed_id
 WHERE ff.user_id = $1
 ORDER BY p.published_at DESC
 LIMIT $2;
+
+-- name: GetPostsByFeed :many
+SELECT * FROM posts 
+WHERE feed_id = $1;

@@ -97,6 +97,14 @@ func main() {
 	router.HandleFunc("/v1/feed_follows", deleteFeedFollow(cfg)).Methods("DELETE")
 	//router.HandleFunc("/v1/feed_follows", getAllFeedFollowsForUser(cfg)).Methods("GET")
 
+	//Post Handlers
+	router.HandleFunc("/posts/{feedID}", func(w http.ResponseWriter, r *http.Request) {
+		r.Header.Add("Authorization", cfg.jwtToken)
+		if r.Method == "GET" {
+			getPosts(cfg, w, r)
+		}
+	}).Methods("GET")
+
 	router.HandleFunc("/v1/posts", getPostsForUser(cfg)).Methods("GET")
 
 	//Testing worker

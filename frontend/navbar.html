@@ -9,8 +9,10 @@
 <body>
     {{define "navbar"}}
     <nav class="navbar navbar-dark bg-dark justify-content-between">
-        <a class="navbar-brand m-4" style="cursor:pointer;" onclick="goHome()">Blog-Aggregator</a>
-        <a class="navbar-brand m-4" style="cursor:pointer;" onclick="goFollowing()">Following</a>
+        <div>
+            <a class="navbar-brand m-4" style="cursor:pointer;" onclick="goHome()">Blog-Aggregator</a>
+            <a class="navbar-brand m-4" style="cursor:pointer;" onclick="goFollowing()">Following</a>
+        </div>
         <form class="form-inline my-2 my-lg-0 m-4">
             <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>

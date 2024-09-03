@@ -9,6 +9,7 @@ type pageData struct {
 	User         User
 	Feeds        []feed
 	Feed_follows []feed_follow
+	Posts        []post
 }
 
 var navbar = "../../frontend/navbar.html"

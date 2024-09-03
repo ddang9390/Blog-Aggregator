@@ -47,6 +47,43 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 	return i, err
 }
 
+const getPostsByFeed = `-- name: GetPostsByFeed :many
+SELECT id, created_at, updated_at, title, url, description, published_at, feed_id FROM posts 
+WHERE feed_id = $1
+`
+
+func (q *Queries) GetPostsByFeed(ctx context.Context, feedID string) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getPostsByFeed, feedID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Title,
+			&i.Url,
+			&i.Description,
+			&i.PublishedAt,
+			&i.FeedID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostsForUser = `-- name: GetPostsForUser :many
 SELECT p.id, p.created_at, p.updated_at, p.title, p.url, p.description, p.published_at, p.feed_id
 FROM posts p
