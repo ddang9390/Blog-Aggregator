@@ -7,27 +7,29 @@
     <link href="/frontend/css/styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-    <div class="d-flex container-sm login-container align-items-center justify-content-center border border-dark rounded ">
-        <form id="registrationForm" action="/register/" method="POST">
-            <div class="row p-2 m-2">
-                <h1>Blog Aggregator</h1>
-            </div>
-            <div class="row p-2 m-2">
-                <label><b>Username</b></label>
-                <input type="text" placeholder="Enter username" name="name" required>
-            </div>
-            <div class="row p-2 m-2">
-                <label><b>Password</b></label>
-                <input type="password" placeholder="Enter password" name="password" required>
-            </div>
-            <div class="row p-2 m-2 alert alert-danger" role="alert" style="display:none">
-                Username is already being used
-            </div>
-            <div class="row p-2 m-2">
-                <button type="submit" class="btn btn-primary">Register</button>
-                <button type="Register" onclick="cancel()" class=" p-2 mt-2 btn btn-secondary">Cancel</button>
-            </div>
-        </form>
+    <div class="d-flex container-sm login-container align-items-center justify-content-center">
+        <div class="formContainer border border-dark rounded">
+            <form id="registrationForm" action="/register/" method="POST">
+                <div class="row p-2 m-2">
+                    <h1>Blog Aggregator</h1>
+                </div>
+                <div class="row p-2 m-2">
+                    <label><b>Username</b></label>
+                    <input type="text" placeholder="Enter username" name="name" required>
+                </div>
+                <div class="row p-2 m-2">
+                    <label><b>Password</b></label>
+                    <input type="password" placeholder="Enter password" name="password" required>
+                </div>
+                <div class="row p-2 m-2 alert alert-danger" role="alert" style="display:none">
+                    Username is already being used
+                </div>
+                <div class="row p-2 m-2">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button type="Register" onclick="cancel()" class=" p-2 mt-2 btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
