@@ -68,6 +68,14 @@ func main() {
 		}
 	}).Methods("GET", "POST")
 
+	// For logging out
+	router.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			logoutUser(cfg, w, r)
+
+		}
+	})
+
 	//Feed handlers
 	router.HandleFunc("/feeds", func(w http.ResponseWriter, r *http.Request) {
 		r.Header.Add("Authorization", cfg.jwtToken)

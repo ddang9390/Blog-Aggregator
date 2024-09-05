@@ -117,7 +117,7 @@ func loginUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	cfg.jwtToken = token
-	setCookieHandler(w, r, cfg, user.ID)
+	//setCookieHandler(w, r, cfg, user.ID)
 	json.NewEncoder(w).Encode(response)
 	return nil
 }
@@ -143,4 +143,13 @@ func getUserHelper(cfg *apiConfig, w http.ResponseWriter, r *http.Request, userI
 	user.Password = u.Password
 
 	return user
+}
+
+func logoutUser(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+	response := map[string]interface{}{
+		"message": "Logged out successfully",
+	}
+	cfg.jwtToken = ""
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
