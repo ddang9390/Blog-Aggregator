@@ -1,0 +1,16 @@
+FROM golang:1.22.6
+
+WORKDIR /blog-aggregator/backend
+
+# COPY source destination
+COPY backend/go.mod ./
+COPY backend/go.sum ./
+RUN go mod download
+
+COPY backend/ ./
+
+RUN go build -o main .
+
+EXPOSE 8080
+
+CMD ["./main"]
